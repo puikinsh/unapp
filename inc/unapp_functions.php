@@ -15,10 +15,25 @@ if( ! function_exists( 'unapp_page_header' ) ) :
 				<div class="display-tc display-tc2">
 					<div class="container">
 						<div class="col-md-12 col-md-offset-0">
-							<div class="animate-box">
-								<h2><?php ( is_home() || is_front_page() ) ? esc_html_e( 'Latest Blog Posts', 'unapp' ) : wp_title( $sep = '' ) ?></h2>
-								<?php echo get_unapp_breadcrumbs(); ?>
-							</div>
+                            <div class="animate-box">
+                                <?php if (is_home() || is_front_page()) { ?>
+                                    <h2><?php esc_html_e('Latest Blog Posts', 'unapp'); ?></h2>
+                                <?php } else if (is_archive()) {
+                                    $archive_title = get_the_archive_title();
+                                    $archive_subtitle = get_the_archive_description();
+                                    if ($archive_title) {
+                                        echo '<h2>' . wp_kses_post($archive_title) . '</h2>';
+                                    }
+                                    if ($archive_subtitle) {
+                                        echo '<h3>' . wp_kses_post(wpautop($archive_subtitle)) . '</h3>';
+                                    }
+                                } else {
+                                    echo '<h2>';
+                                    wp_title($sep = '');
+                                    echo '</h2>';
+                                } ?>
+                                <?php echo get_unapp_breadcrumbs(); ?>
+                            </div>
 						</div>
 					</div>
 				</div>
@@ -267,15 +282,25 @@ if( !function_exists( 'get_unapp_breadcrumbs' ) ){
 
 			} elseif ( is_date() ) {
 				// Set default variables
-				$year     = $wp_the_query->query_vars['year'];
-				$monthnum = $wp_the_query->query_vars['monthnum'];
-				$day      = $wp_the_query->query_vars['day'];
+                $yearMonth = $wp_the_query->query_vars['m'];
+                $year      = $wp_the_query->query_vars['year'];
+                $monthnum  = $wp_the_query->query_vars['monthnum'];
+                $day       = $wp_the_query->query_vars['day'];
 
-				// Get the month name if $monthnum has a value
-				if ( $monthnum ) {
-					$date_time  = DateTime::createFromFormat( '!m', $monthnum );
-					$month_name = $date_time->format( 'F' );
-				}
+                // Get the month name if $monthnum has a value
+                if ( $monthnum ) {
+                    $date_time  = DateTime::createFromFormat( '!m', $monthnum );
+                    $month_name = $date_time->format( 'F' );
+                } else if ( $yearMonth ) {
+                    if(is_year()) {
+                        $date_time  = DateTime::createFromFormat( '!Y', $yearMonth );
+                        $year = $date_time->format( 'Y' );
+                    } else if(is_month()) {
+                        $date_time  = DateTime::createFromFormat( '!Ym', $yearMonth );
+                        $year = $date_time->format( 'Y' );
+                        $month_name = $date_time->format( 'F' );
+                    }
+                }
 
 				if ( is_year() ) {
 
